@@ -1,0 +1,54 @@
+_BASE_: "base_tbps.yaml"
+MODEL:
+  META_ARCHITECTURE: "ClipViper"
+  ROI_HEADS:
+    IOU_THRESHOLDS: [0.5]
+    IOU_LABELS: [0, 1]
+    BATCH_SIZE_PER_IMAGE: 128
+  ROI_BOX_HEAD:
+    SMOOTH_L1_BETA: 0.
+    POOLER_SAMPLING_RATIO: 0
+PERSON_SEARCH:
+  DET:
+    CLIP:
+      FREEZE_AT_STAGE2: False
+      FROZEN_BN: False
+      TEXT_DROPOUT: 0.2
+  REID:
+    BOX_AUGMENTATION:
+      NAME: "dn_detr"
+      H_CENTER: 0.4
+      H_SCALE: 0.2
+      NUM_LABELED: 3
+      APPEND_GT: True
+      NUM_UNLABLED: 3
+    LOSS:
+      OIM:
+        NUM_LB: 5532
+        LEN_ULB: 5000
+        LB_FACTOR: 30
+        ULB_FACTOR: 30
+    ATTN:
+      RM_MIN: 1
+      RM_MAX: 4
+      ECH_MIN: 4
+      ECH_MAX: 8
+    MIM_RATIO: 0.5
+    MIM_LOSS_W: 1.0
+SOLVER:
+  OPTIM: "AdamW"
+  BASE_LR: 0.00001
+  MAX_ITER: 33600
+  STEPS: (19600,)
+  CHECKPOINT_PERIOD: 2800
+  WARMUP_ITERS: 1400
+  IMS_PER_BATCH: 8
+  LR_FACTORS: [5.0,5.0]
+  LR_GROUP_REGEX: ["proposal_generator.+","roi_heads.box_predictor.+"]
+  WEIGHT_DECAY_BIAS: 0.0
+DATASETS:
+  TRAIN: ("CUHK-SYSU_TBPS_Train",) 
+  TEST: ("CUHK-SYSU_TBPS_Gallery", "CUHK-SYSU_TBPS_TestG100",)
+TEST:
+  EVAL_PERIOD: 1400
+OUTPUT_DIR: "outputs/viper/clipviper_cuhk"
